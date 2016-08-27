@@ -47,6 +47,16 @@ namespace ATMobile.Plugins.Equipment
         {
             return (Page)Activator.CreateInstance (_menuOption.TargetType);
         }
+
+        public void OnSleep ()
+        {
+
+        }
+
+        public void OnResume ()
+        {
+
+        }
     }
 }
 
