@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using ATMobile.Controls;
 using ATMobile.Forms;
 using ATMobile.Managers;
 using ATMobile.Objects;
@@ -15,7 +16,7 @@ namespace ATMobile.Plugins.Equipment.Forms
         private SightSetting m_SightSetting;
 
         private DatePicker m_datSettingDate;
-        private Label m_lblSettingDate;
+        private ATLabel m_lblSettingDate;
         private Entry m_txtDistance;
         private Picker m_pickUnits;
         private Entry m_txtSetting;
@@ -24,7 +25,7 @@ namespace ATMobile.Plugins.Equipment.Forms
 
         public SightSettingForm () : base ("Sight Setting")
         {
-            m_lblSettingDate = new Label ();
+            m_lblSettingDate = new ATLabel ();
             m_lblSettingDate.Text = "Setting Date";
             InsideLayout.Children.Add (m_lblSettingDate);
 
