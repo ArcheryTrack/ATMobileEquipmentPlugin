@@ -113,7 +113,7 @@ namespace ATMobile.Plugins.Equipment.Forms
             if (selected != null) {
                 SightSettingForm addSetting = new SightSettingForm ();
                 addSetting.SetSightSetting (selected, setting);
-                Navigation.PushAsync (addSetting);
+                Navigation.PushModalAsync (addSetting);
             }
         }
 
