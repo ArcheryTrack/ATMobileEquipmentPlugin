@@ -14,10 +14,12 @@ namespace ATMobile.Plugins.Equipment.Forms
     public class SightSetupForm : AbstractListForm
     {
         private bool m_Loading;
-        private List<Archer> m_Archers;
 
-        private Picker m_ArcherPicker;
         private SightSettingListView m_SightSettings;
+        private PracticeHistoryListView m_PracticeHistory;
+
+        private Archer m_CurrentArcher;
+        private ArcherBar m_ArcherBar;
 
 
         public SightSetupForm () : base ("Sight Setup")
@@ -25,80 +27,36 @@ namespace ATMobile.Plugins.Equipment.Forms
             m_Loading = true;
 
             //Load Archers and setup picker
-            m_Archers = ATManager.GetInstance ().GetArchers ();
-
-            m_ArcherPicker = new Picker () {
-                Margin = new Thickness (20, 0, 20, 0)
-            };
-            foreach (var archer in m_Archers) {
-                m_ArcherPicker.Items.Add (archer.FullName);
-            }
-            m_ArcherPicker.SelectedIndexChanged += OnArcherPicked;
-            OutsideLayout.Children.Insert (1, m_ArcherPicker);
+            m_ArcherBar = new ArcherBar ();
+            m_ArcherBar.ArcherPicked += ArcherPicked;
+            m_CurrentArcher = m_ArcherBar.CurrentArcher;
+            OutsideLayout.Children.Insert (1, m_ArcherBar);
 
             m_SightSettings = new SightSettingListView ();
             m_SightSettings.ItemSelected += OnSelected;
             ListFrame.Content = m_SightSettings;
 
-            GetCurrentArcher ();
-
             m_Loading = false;
         }
 
-        void GetCurrentArcher ()
-        {
-            Guid? currentArcher = ATManager.GetInstance ().SettingManager.GetCurrentArcher ();
-
-            if (currentArcher != null) {
-                for (int i = 0; i < m_Archers.Count; i++) {
-                    Archer archer = m_Archers [i];
-
-                    if (archer.Id == currentArcher.Value) {
-                        m_ArcherPicker.SelectedIndex = i;
-                        break;
-                    }
-                }
-            } else {
-                if (m_Archers.Count > 0) {
-                    m_ArcherPicker.SelectedIndex = 0;
-                }
-            }
-        }
-
-        Archer GetSelectedArcher ()
-        {
-            if (m_ArcherPicker.SelectedIndex >= 0) {
-                return m_Archers [m_ArcherPicker.SelectedIndex];
-            }
-
-            return null;
-        }
-
-        void OnArcherPicked (object sender, EventArgs e)
+        void ArcherPicked (Archer archer)
         {
             if (!m_Loading) {
-                if (m_ArcherPicker.SelectedIndex != -1) {
-                    Archer archer = m_Archers [m_ArcherPicker.SelectedIndex];
-                    ATManager.GetInstance ().SettingManager.SetCurrentArcher (archer.Id);
+                m_CurrentArcher = archer;
+
+                if (m_CurrentArcher != null) {
+                    ATManager.GetInstance ().SettingManager.SetCurrentArcher (m_CurrentArcher.Id);
                 }
-            }
 
-            if (m_ArcherPicker.SelectedIndex >= 0) {
-                AddButton.IsEnabled = true;
-            } else {
-                AddButton.IsEnabled = false;
+                RefreshList ();
             }
-
-            RefreshList ();
         }
 
         public override void Add ()
         {
-            Archer selected = GetSelectedArcher ();
-
-            if (selected != null) {
+            if (m_CurrentArcher != null) {
                 SightSettingForm addSetting = new SightSettingForm ();
-                addSetting.SetSightSetting (selected, null);
+                addSetting.SetSightSetting (m_CurrentArcher, null);
 
                 Navigation.PushModalAsync (addSetting);
             }
@@ -108,11 +66,9 @@ namespace ATMobile.Plugins.Equipment.Forms
         {
             SightSetting setting = (SightSetting)e.SelectedItem;
 
-            Archer selected = GetSelectedArcher ();
-
-            if (selected != null) {
+            if (m_CurrentArcher != null) {
                 SightSettingForm addSetting = new SightSettingForm ();
-                addSetting.SetSightSetting (selected, setting);
+                addSetting.SetSightSetting (m_CurrentArcher, setting);
                 Navigation.PushModalAsync (addSetting);
             }
         }
@@ -124,11 +80,12 @@ namespace ATMobile.Plugins.Equipment.Forms
 
         private void RefreshList ()
         {
-            if (m_ArcherPicker.SelectedIndex == -1) {
+            if (m_CurrentArcher == null) {
                 m_SightSettings.ClearList ();
+                AddButton.IsEnabled = false;
             } else {
-                Archer archer = m_Archers [m_ArcherPicker.SelectedIndex];
-                m_SightSettings.RefreshList (archer.Id);
+                m_SightSettings.RefreshList (m_CurrentArcher.Id);
+                AddButton.IsEnabled = true;
             }
         }
     }
